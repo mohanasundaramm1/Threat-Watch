@@ -8,8 +8,8 @@
 ---
 
 ## 👥 Meet the Team
-**Kingston University - Capstone Project 2025/2026**
-- **Mohan (vw4192)** – Data Engineering & Architecture
+**California State University, East Bay - Capstone Project 2025/2026**
+- **Mohanasundaram (vw4192)** – Data Engineering & Architecture
 - **Nikita (kf3051)** – Machine Learning & Frontend Dashboard
 
 ---
@@ -135,5 +135,5 @@ Our dynamic LightGBM engine currently validates with incredibly resilient metric
 ---
 
 <div align="center">
-  <i>Developed for the 2025/2026 Kingston University Data Engineering Capstone.</i>
+  <i>Developed for the 2025/2026 California State University, East Bay Data Engineering Capstone.</i>
 </div>
