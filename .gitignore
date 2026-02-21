@@ -40,3 +40,6 @@ dashboard/public/data/statistics.json
 dashboard/public/data/threats*.json
 dashboard/public/data/model_meta.json
 _spark_metadata/
+threat-intel/geoip/
+dashboard/public/data/drift.json
+dashboard/public/data/statistics_prev.json
