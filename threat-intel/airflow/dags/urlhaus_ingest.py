@@ -108,7 +108,7 @@ def fetch_and_write_urlhaus(ds: str | None = None, ts: str | None = None, **cont
 
     # Normalize
     df["domain"] = df["url"].map(_host)
-    df["first_seen"] = _to_utc_timestamp(ts)
+    df["first_seen"] = pd.to_datetime(df["dateadded"], utc=True, errors="coerce").fillna(_to_utc_timestamp(ts))
     cols = ["url","domain","threat","tags","urlhaus_link","reporter","status","last_online","dateadded","first_seen"]
     for c in cols:
         if c not in df.columns:

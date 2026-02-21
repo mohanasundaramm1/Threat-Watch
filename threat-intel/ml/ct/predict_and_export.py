@@ -25,7 +25,7 @@ MODEL_DIR         = os.path.join(ML_DIR, "models", "registry")
 if os.path.exists("/opt/airflow/dashboard_data"):
     DASHBOARD_DATA_DIR = "/opt/airflow/dashboard_data"
 else:
-    DASHBOARD_DATA_DIR = os.path.join(REPO_ROOT, "..", "dashboard", "dashboard", "public", "data")
+    DASHBOARD_DATA_DIR = os.path.join(REPO_ROOT, "dashboard", "public", "data")
 
 os.makedirs(DASHBOARD_DATA_DIR, exist_ok=True)
 
@@ -186,8 +186,9 @@ def main(date_str):
         json.dump(results_df.to_dict(orient="records"), f, indent=2)
         
     # Write threats_recent.json and threats_high_risk.json (Top 100 for recent, top 1000 for high risk)
+    recent_df = results_df.sort_values("firstSeen", ascending=False).head(100)
     with open(os.path.join(DASHBOARD_DATA_DIR, "threats_recent.json"), "w") as f:
-        json.dump(results_df.head(100).to_dict(orient="records"), f, indent=2)
+        json.dump(recent_df.to_dict(orient="records"), f, indent=2)
     with open(os.path.join(DASHBOARD_DATA_DIR, "threats_high_risk.json"), "w") as f:
         json.dump(results_df[results_df["riskLevel"].isin(["CRITICAL", "HIGH"])].head(1000).to_dict(orient="records"), f, indent=2)
         

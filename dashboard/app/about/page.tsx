@@ -56,8 +56,8 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold text-white">Project Agenda</h2>
         </div>
         <p className="text-slate-300 mb-6 leading-relaxed">
-          The primary agenda of this capstone project was to design and implement a comprehensive 
-          <strong className="text-cyan-400"> Real-Time Threat Intelligence System</strong> that combines data engineering, machine learning, 
+          The primary agenda of this capstone project was to design and implement a comprehensive
+          <strong className="text-cyan-400"> Real-Time Threat Intelligence System</strong> that combines data engineering, machine learning,
           and web technologies to detect and classify malicious domains and URLs.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -91,10 +91,10 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold text-white">Project Purpose</h2>
         </div>
         <p className="text-slate-300 mb-5 leading-relaxed">
-          In today's cybersecurity landscape, organizations face an overwhelming volume of threats. 
+          In today&apos;s cybersecurity landscape, organizations face an overwhelming volume of threats.
           Traditional manual analysis methods cannot keep pace with the sophistication and scale of modern attacks.
         </p>
-        
+
         <div className="bg-slate-800/30 p-5 rounded-xl border border-slate-700/50">
           <h3 className="font-black text-cyan-400 mb-4 text-lg">Key Objectives:</h3>
           <ul className="space-y-3 text-slate-300">
@@ -300,10 +300,10 @@ export default function AboutPage() {
           <h2 className="text-3xl font-black text-white">Project Impact</h2>
         </div>
         <p className="text-slate-200 mb-6 leading-relaxed text-lg">
-          This capstone project successfully demonstrates the application of modern data engineering 
-          and machine learning techniques to solve real-world cybersecurity challenges. By achieving 
-          99% accuracy in threat detection and processing nearly 70,000 threat records, we have built 
-          a system that could significantly reduce the time and effort required for security analysts 
+          This capstone project successfully demonstrates the application of modern data engineering
+          and machine learning techniques to solve real-world cybersecurity challenges. By achieving
+          99% accuracy in threat detection and processing nearly 70,000 threat records, we have built
+          a system that could significantly reduce the time and effort required for security analysts
           to identify and respond to threats.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">

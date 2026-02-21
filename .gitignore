@@ -23,16 +23,20 @@ threat-intel/airflow/logs/
 
 # Data & Models
 *.parquet
-*.json
-*.csv
 *.db
 *.sqlite3
 *.tgz
 *.gz
+threat-intel/bronze/
 threat-intel/silver/
 threat-intel/lookups/
+threat-intel/dlq/
+threat-intel/chk/
+threat-intel/ct/data/
+threat-intel/ct/dlq/
 threat-intel/ml/models/registry/
 threat-intel/ml/tmp/
-threat-intel/airflow/dashboard_data/
-dashboard/dashboard/public/data/
-threat-intel/*.tgz
+dashboard/public/data/statistics.json
+dashboard/public/data/threats*.json
+dashboard/public/data/model_meta.json
+_spark_metadata/
