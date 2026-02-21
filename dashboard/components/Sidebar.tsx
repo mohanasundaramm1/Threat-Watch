@@ -12,9 +12,25 @@ const navigation = [
   { name: 'Data Sources', href: '/sources', icon: Database },
   { name: 'About Project', href: '/about', icon: Shield },
 ];
+import { useEffect, useState } from 'react';
+import type { DashboardStats, ModelMeta } from '@/types';
+import { loadStatistics, loadModelMeta } from '@/lib/data';
+import { formatNumber } from '@/lib/utils';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [meta, setMeta] = useState<ModelMeta | null>(null);
+
+  useEffect(() => {
+    async function init() {
+      const s = await loadStatistics();
+      const m = await loadModelMeta();
+      setStats(s);
+      setMeta(m);
+    }
+    init();
+  }, []);
 
   return (
     <div className="w-72 bg-slate-950 border-r border-slate-800/50 h-screen fixed left-0 top-0 overflow-y-auto">
@@ -35,22 +51,21 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
-        
+
         {/* Navigation */}
         <nav className="space-y-2">
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
-            
+
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 relative group ${
-                  isActive
-                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-400 border border-cyan-500/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 relative group ${isActive
+                  ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-400 border border-cyan-500/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  }`}
               >
                 {isActive && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-r-full"></div>
@@ -71,11 +86,15 @@ export default function Sidebar() {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-xs text-slate-400">Threats Analyzed</span>
-              <span className="text-xs font-bold text-white">69.6K</span>
+              <span className="text-xs font-bold text-white">
+                {stats ? formatNumber(stats.totalSamples) : "Loading..."}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-slate-400">ML Accuracy</span>
-              <span className="text-xs font-bold text-emerald-400">99.08%</span>
+              <span className="text-xs font-bold text-emerald-400">
+                {meta?.metrics ? `${(meta.metrics.roc_auc * 100).toFixed(2)}%` : "Loading..."}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-slate-400">Uptime</span>

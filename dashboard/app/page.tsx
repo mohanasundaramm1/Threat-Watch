@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import StatCard from '@/components/StatCard';
 import { Shield, AlertTriangle, TrendingUp, Database } from 'lucide-react';
 import type { ThreatDomain, DashboardStats } from '@/types';
-import { loadThreatData, loadStatistics } from '@/lib/data';
+import { loadHighRiskThreats, loadStatistics } from '@/lib/data';
 import { formatDate, getRiskLevelColor, getThreatTypeColor, formatNumber } from '@/lib/utils';
 
 export default function DashboardPage() {
@@ -15,7 +15,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadData() {
       const [threatsData, statsData] = await Promise.all([
-        loadThreatData(),
+        loadHighRiskThreats(),
         loadStatistics()
       ]);
       setThreats(threatsData);
@@ -89,7 +89,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.entries(stats.riskDistribution).map(([level, count]) => {
               const getBgColor = (lvl: string) => {
-                switch(lvl) {
+                switch (lvl) {
                   case 'CRITICAL': return 'from-red-500/20 to-red-600/20 border-red-500/30';
                   case 'HIGH': return 'from-orange-500/20 to-orange-600/20 border-orange-500/30';
                   case 'MEDIUM': return 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30';
@@ -97,7 +97,7 @@ export default function DashboardPage() {
                   default: return 'from-slate-500/20 to-slate-600/20 border-slate-500/30';
                 }
               };
-              
+
               return (
                 <div key={level} className={`text-center p-6 bg-gradient-to-br ${getBgColor(level)} rounded-xl border backdrop-blur-sm hover:shadow-xl transition-all duration-300`}>
                   <div className={`inline-block px-4 py-2 rounded-full text-sm font-bold mb-3 shadow-lg ${getRiskLevelColor(level)}`}>
@@ -150,12 +150,11 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-24 bg-slate-800 rounded-full h-2.5">
                         <div
-                          className={`h-2.5 rounded-full ${
-                            threat.riskScore >= 0.75 ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                          className={`h-2.5 rounded-full ${threat.riskScore >= 0.75 ? 'bg-gradient-to-r from-red-500 to-red-600' :
                             threat.riskScore >= 0.50 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
-                            threat.riskScore >= 0.30 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-                            'bg-gradient-to-r from-green-500 to-green-600'
-                          }`}
+                              threat.riskScore >= 0.30 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                'bg-gradient-to-r from-green-500 to-green-600'
+                            }`}
                           style={{ width: `${threat.riskScore * 100}%` }}
                         ></div>
                       </div>

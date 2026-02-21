@@ -1,8 +1,24 @@
 'use client';
 
 import { Users, Target, Lightbulb, Cpu, TrendingUp, Award } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { DashboardStats, ModelMeta } from '@/types';
+import { loadStatistics, loadModelMeta } from '@/lib/data';
+import { formatNumber } from '@/lib/utils';
 
 export default function AboutPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [meta, setMeta] = useState<ModelMeta | null>(null);
+
+  useEffect(() => {
+    async function init() {
+      const s = await loadStatistics();
+      const m = await loadModelMeta();
+      setStats(s);
+      setMeta(m);
+    }
+    init();
+  }, []);
   return (
     <div>
       <div className="mb-8">
@@ -39,7 +55,7 @@ export default function AboutPage() {
               </div>
               <div>
                 <h3 className="text-2xl font-black text-white">Mohanasundaram Murugesan</h3>
-                <p className="text-sm text-purple-400 font-bold">Student ID: [Net ID]</p>
+                <p className="text-sm text-purple-400 font-bold">Student ID: k3059432</p>
                 <p className="text-sm text-slate-400 mt-1">kingston.ac.uk</p>
               </div>
             </div>
@@ -137,7 +153,7 @@ export default function AboutPage() {
               <li>• Integrated 4 threat intelligence feeds (URLhaus, OpenPhish, MISP, Top-1M benign)</li>
               <li>• Implemented Apache Kafka for real-time streaming</li>
               <li>• Built Apache Airflow DAGs for batch ingestion (daily updates)</li>
-              <li>• Processed 69,641 threat records from production data</li>
+              <li>• Processed {stats ? formatNumber(stats.totalSamples) : '69,641'} threat records from production data</li>
             </ul>
           </div>
 
@@ -159,7 +175,7 @@ export default function AboutPage() {
               <li>• Trained 4 ML models (Logistic Regression, Random Forest, LightGBM)</li>
               <li>• Performed cross-validation and hyperparameter tuning</li>
               <li>• Evaluated models using ROC-AUC, PR-AUC, and Recall@1%FPR</li>
-              <li>• Selected best model (LightGBM: 99.08% ROC-AUC)</li>
+              <li>• Selected best model (LightGBM: {meta?.metrics ? `${(meta.metrics.roc_auc * 100).toFixed(2)}%` : '99.08%'} ROC-AUC)</li>
             </ul>
           </div>
 
@@ -191,11 +207,11 @@ export default function AboutPage() {
               <ul className="text-sm text-slate-300 space-y-2.5 font-medium">
                 <li className="flex justify-between">
                   <span className="text-slate-400">Total Records Processed:</span>
-                  <strong className="text-white font-black">69,641</strong>
+                  <strong className="text-white font-black">{stats ? formatNumber(stats.totalSamples) : '0'}</strong>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-slate-400">Malicious Domains:</span>
-                  <strong className="text-white font-black">58,889 (84.6%)</strong>
+                  <strong className="text-white font-black">{stats ? `${formatNumber(stats.maliciousCount)} (${((stats.maliciousCount / stats.totalSamples) * 100).toFixed(1)}%)` : '0 (0%)'}</strong>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-slate-400">Data Sources Integrated:</span>
@@ -221,7 +237,7 @@ export default function AboutPage() {
                 </li>
                 <li className="flex justify-between">
                   <span className="text-slate-400">Threats Displayed:</span>
-                  <strong className="text-white font-black">5,000</strong>
+                  <strong className="text-white font-black">{stats ? formatNumber(stats.totalSamples > 5000 ? 5000 : stats.totalSamples) : '5,000'}</strong>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-slate-400">Technology Stack:</span>
@@ -241,7 +257,7 @@ export default function AboutPage() {
               <ul className="text-sm text-slate-300 space-y-2.5 font-medium">
                 <li className="flex justify-between">
                   <span className="text-slate-400">Best Model (LightGBM):</span>
-                  <strong className="text-purple-400 font-black text-lg">99.08% ROC-AUC</strong>
+                  <strong className="text-purple-400 font-black text-lg">{meta?.metrics ? `${(meta.metrics.roc_auc * 100).toFixed(2)}%` : '99.08%'} ROC-AUC</strong>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-slate-400">Deployed Model (LogReg):</span>
@@ -253,7 +269,7 @@ export default function AboutPage() {
                 </li>
                 <li className="flex justify-between">
                   <span className="text-slate-400">Training Samples:</span>
-                  <strong className="text-white font-black">17,805</strong>
+                  <strong className="text-white font-black">{meta ? formatNumber(meta.n_rows) : '17,805'}</strong>
                 </li>
                 <li className="flex justify-between">
                   <span className="text-slate-400">Models Trained:</span>
