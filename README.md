@@ -9,8 +9,8 @@
 
 ## 👥 Meet the Team
 **California State University, East Bay - Capstone Project 2025/2026**
-- **Mohanasundaram (vw4192)** – Data Engineering & Architecture
-- **Nikita (kf3051)** – Machine Learning & Frontend Dashboard
+- **Mohanasundaram Murugesan (k3059432)** – Data Engineering & Architecture
+- **Nikita Desale (kf3051)** – Machine Learning & Frontend Dashboard
 
 ---
 
@@ -125,12 +125,18 @@ Navigate to `http://localhost:3000` to view the live threat matrix.
 
 ---
 
-## � ML Model Performance
-Our dynamic LightGBM engine currently validates with incredibly resilient metrics against live drifting data:
-- **ROC-AUC Score:** `98.44%`
-- **Precision-Recall AUC:** `98.26%`
-- **Recall at 1% FPR:** `89.80%`
-*Note: These metrics dynamically update bi-weekly upon Airflow's automatic retraining triggers.*
+## 🧬 ML Model Performance
+> Metrics are dynamically updated on every bi-weekly retraining cycle.
+> Live values are served from `dashboard/public/data/model_meta.json`.
+
+| Metric | Value |
+|---|---|
+| ROC-AUC Score | auto-updated from model_meta.json |
+| Precision-Recall AUC | auto-updated from model_meta.json |
+| Recall at 1% FPR | auto-updated from model_meta.json |
+| Geolocation Provider | ip-api.com (free), ipinfo.io (set `GEO_PROVIDER=ipinfo_lite`) |
+
+> **CI Status:** All pushes to `main` run `pytest` (backend) and `next lint` (frontend) via GitHub Actions.
 
 ---
 

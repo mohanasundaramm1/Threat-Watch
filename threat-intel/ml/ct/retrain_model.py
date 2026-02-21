@@ -197,6 +197,7 @@ def main(days_back=14):
     
     meta = {
         "created_utc": NOW_UTC.isoformat(),
+        "trained_at": NOW_UTC.isoformat(),  # alias for dashboard schema compatibility
         "n_rows": int(len(Xdf)),
         "n_pos": int((y == 1).sum()),
         "n_neg": int((y == 0).sum()),

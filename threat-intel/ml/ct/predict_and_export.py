@@ -135,8 +135,11 @@ def main(date_str):
         traceback.print_exc()
         return
         
-    # Flag MISP match if it's in the domain list or shares an IP
-    Xdf["is_misp"] = Xdf.apply(lambda r: (r["registered_domain"] in misp_domains) or bool(r.get("matched_misp_ip", False)), axis=1)
+    # Flag MISP match with the same column name used during training (is_in_misp)
+    Xdf["is_in_misp"] = Xdf.apply(
+        lambda r: int((r["registered_domain"] in misp_domains) or bool(r.get("matched_misp_ip", False))),
+        axis=1
+    )
     
     X_full = build_features(Xdf)
     preds = booster.predict(X_full)
@@ -153,8 +156,8 @@ def main(date_str):
     # Format to frontend JSON structure
     out_rows = []
     for _, row in Xdf.iterrows():
-        is_misp = row.get("is_misp", False)
-        if is_misp:
+        is_in_misp = bool(row.get("is_in_misp", 0))
+        if is_in_misp:
             score = 1.00
             risk_level = "CRITICAL"
             threat_type = str(row.get("misp_category", "misp_osint")).lower()
@@ -169,7 +172,7 @@ def main(date_str):
             "url": row.get("url", ""),
             "firstSeen": str(row.get("first_seen", "")),
             "label": row.get("label", "unknown"),
-            "source": "misp_osint" if is_misp else row.get("source", "unknown"),
+            "source": "misp_osint" if is_in_misp else row.get("source", "unknown"),
             "riskScore": round(score, 4),
             "riskLevel": risk_level,
             "threatType": threat_type,
@@ -197,7 +200,7 @@ def main(date_str):
     stats = {
         "totalSamples": len(Xdf),
         "maliciousCount": len(results_df[results_df["riskScore"] >= 0.6]),
-        "benignCount": len(results_df[(results_df["riskScore"] < 0.6) & (results_df["riskLevel"] != "CRITICAL")]),
+        "benignCount": len(results_df) - len(results_df[results_df["riskScore"] >= 0.6]),
         "riskDistribution": {
             "CRITICAL": len(results_df[results_df["riskLevel"] == "CRITICAL"]),
             "LOW": len(results_df[results_df["riskLevel"] == "LOW"]),
