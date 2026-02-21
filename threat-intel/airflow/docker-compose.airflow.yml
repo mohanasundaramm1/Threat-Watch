@@ -1,0 +1,86 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U airflow" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  airflow-webserver:
+    image: apache/airflow:2.9.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: "UTC"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary pandas pyarrow requests dnspython tldextract great_expectations==0.18.12 scikit-learn lightgbm joblib"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ../bronze:/opt/airflow/bronze
+      - ../silver:/opt/airflow/silver
+      - ../lookups:/opt/airflow/lookups
+      - ../ml:/opt/airflow/ml
+      - ../../dashboard/dashboard/public/data:/opt/airflow/dashboard_data
+    ports:
+      - "8080:8080"
+    command: webserver
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: "UTC"
+      AIRFLOW__SCHEDULER__ZOMBIE_TASK_THRESHOLD: "10800" # 3 hours
+      AIRFLOW__SCHEDULER__TASK_HEARTBEAT_SEC: "30"
+      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary pandas pyarrow requests dnspython tldextract great_expectations==0.18.12 scikit-learn lightgbm joblib"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ../bronze:/opt/airflow/bronze
+      - ../silver:/opt/airflow/silver
+      - ../lookups:/opt/airflow/lookups
+      - ../ml:/opt/airflow/ml
+      - ../../dashboard/dashboard/public/data:/opt/airflow/dashboard_data
+    command: scheduler
+
+  airflow-triggerer:
+    image: apache/airflow:2.9.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: "UTC"
+      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary pandas pyarrow requests dnspython tldextract great_expectations==0.18.12 scikit-learn lightgbm joblib"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    command: triggerer
+
+volumes:
+  pgdata:

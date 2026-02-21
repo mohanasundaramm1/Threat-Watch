@@ -1,0 +1,38 @@
+# Node
+node_modules/
+.next/
+out/
+build/
+dashboard/dashboard/node_modules/
+dashboard/dashboard/.next/
+dashboard/dashboard/out/
+
+# Python & Airflow
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.venv
+env/
+*.log
+airflow-webserver.pid
+airflow-scheduler.pid
+logs/
+threat-intel/airflow/logs/
+
+# Data & Models
+*.parquet
+*.json
+*.csv
+*.db
+*.sqlite3
+*.tgz
+*.gz
+threat-intel/silver/
+threat-intel/lookups/
+threat-intel/ml/models/registry/
+threat-intel/ml/tmp/
+threat-intel/airflow/dashboard_data/
+dashboard/dashboard/public/data/
+threat-intel/*.tgz

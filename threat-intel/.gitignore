@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.chk/
+chk/
+bronze/
+dlq/
+*.pyc
+.DS_Store
+.env
+
+# ML artifacts
+ml/tmp/
+ml/models/*.joblib
+ml/models/*.bin
+ml/models/*.txt

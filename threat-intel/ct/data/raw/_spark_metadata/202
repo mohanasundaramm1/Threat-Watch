@@ -1,0 +1,5 @@
+v1
+{"path":"file:///Users/mohanasundarammurugasen/dev/threat-intel/ct/data/raw/ds=2025-11-30/part-00000-266652a0-9f19-4eba-be03-e6f002e96ecc.c000.snappy.parquet","size":25395,"isDir":false,"modificationTime":1764472740748,"blockReplication":1,"blockSize":33554432,"action":"add"}
+{"path":"file:///Users/mohanasundarammurugasen/dev/threat-intel/ct/data/raw/ds=2025-11-30/part-00001-8dc7c43e-548b-43ca-8d4b-12113059aa1b.c000.snappy.parquet","size":26134,"isDir":false,"modificationTime":1764472740748,"blockReplication":1,"blockSize":33554432,"action":"add"}
+{"path":"file:///Users/mohanasundarammurugasen/dev/threat-intel/ct/data/raw/ds=2025-11-30/part-00002-d5201524-4d97-4075-8efa-39cc0d83c3b9.c000.snappy.parquet","size":26447,"isDir":false,"modificationTime":1764472740749,"blockReplication":1,"blockSize":33554432,"action":"add"}
+{"path":"file:///Users/mohanasundarammurugasen/dev/threat-intel/ct/data/raw/ds=2025-11-30/part-00003-c3eb785e-0e8f-4a8a-b3c5-78a183fbc5a3.c000.snappy.parquet","size":25996,"isDir":false,"modificationTime":1764472740749,"blockReplication":1,"blockSize":33554432,"action":"add"}
