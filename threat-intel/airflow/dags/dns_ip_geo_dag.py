@@ -20,6 +20,13 @@ log = logging.getLogger(__name__)
 LABELS_UNION_BASE = "/opt/airflow/silver/labels_union"
 LOOKUPS_BASE      = "/opt/airflow/lookups"
 
+# Geo provider — set GEO_PROVIDER=ip_api (default) or GEO_PROVIDER=ipinfo_lite
+# ip_api free tier is HTTP-only (HTTPS requires a paid key). The DAG uses HTTP
+# with TLS via the retry adapter but avoids the paid HTTPS endpoint.
+# Switch to ipinfo_lite or maxmind when available.
+GEO_PROVIDER = os.getenv("GEO_PROVIDER", "ip_api")  # ip_api | ipinfo_lite
+IPINFO_TOKEN = os.getenv("IPINFO_TOKEN", "")  # set to your ipinfo.io free token
+
 DNS_GEO_CACHE_PATH = f"{LOOKUPS_BASE}/dns_geo_cache.parquet"   # rolling cache
 DNS_GEO_DAILY_DIR  = f"{LOOKUPS_BASE}/dns_geo"                 # partitioned snapshots
 
@@ -105,10 +112,18 @@ def _resolve_ips(puny_domain: str, resolver: dns.resolver.Resolver) -> List[str]
     return _resolve_rr(puny_domain, "A", resolver) + _resolve_rr(puny_domain, "AAAA", resolver)
 
 def _ip_geo_batch(session: requests.Session, ips: List[str]) -> Dict[str, Dict[str, Any]]:
-    """Query ip-api batch (100 per call). Return {ip: geo_fields}."""
+    """Query geo provider in batch. Respects GEO_PROVIDER env-var."""
     if not ips:
         return {}
-    url = "https://ip-api.com/batch"  # secure transport; best-effort
+    if GEO_PROVIDER == "ipinfo_lite" and IPINFO_TOKEN:
+        return _ip_geo_ipinfo(session, ips)
+    # Default: ip-api free tier (HTTP only; HTTPS requires paid key)
+    return _ip_geo_ipapi(session, ips)
+
+
+def _ip_geo_ipapi(session: requests.Session, ips: List[str]) -> Dict[str, Dict[str, Any]]:
+    """ip-api.com batch — free tier uses HTTP (not HTTPS on free plan)."""
+    url = "http://ip-api.com/batch"  # free-tier constraint; use paid HTTPS if available
     out_map: Dict[str, Dict[str, Any]] = {}
     for i in range(0, len(ips), 100):
         chunk = ips[i:i+100]
@@ -143,7 +158,38 @@ def _ip_geo_batch(session: requests.Session, ips: List[str]) -> Dict[str, Dict[s
             log.warning("ip-api batch error on %s..%s: %s", chunk[:1], chunk[-1:], e)
             for ip in chunk:
                 out_map[ip] = {}
-        time.sleep(1.5)  # gentler throttle
+        time.sleep(1.5)  # free-tier: 45 req/min, ~1 per 100-IP batch
+    return out_map
+
+
+def _ip_geo_ipinfo(session: requests.Session, ips: List[str]) -> Dict[str, Dict[str, Any]]:
+    """ipinfo.io lite — supports HTTPS on free tier (50k req/day)."""
+    out_map: Dict[str, Dict[str, Any]] = {}
+    for ip in ips:
+        try:
+            r = session.get(f"https://ipinfo.io/{ip}/json?token={IPINFO_TOKEN}", timeout=(3, 10))
+            r.raise_for_status()
+            rec = r.json()
+            country_code = rec.get("country", "")
+            loc = rec.get("loc", ",").split(",")
+            out_map[ip] = {
+                "country": country_code,
+                "region": rec.get("region"),
+                "city": rec.get("city"),
+                "lat": float(loc[0]) if len(loc) == 2 else None,
+                "lon": float(loc[1]) if len(loc) == 2 else None,
+                "asn": (rec.get("org") or "").split(" ")[0],
+                "asn_name": (rec.get("org") or ""),
+                "isp": rec.get("org"),
+                "org": rec.get("org"),
+                "reverse": rec.get("hostname"),
+                "proxy": None,
+                "hosting": None,
+            }
+        except Exception as e:
+            log.warning("ipinfo error for %s: %s", ip, e)
+            out_map[ip] = {}
+        time.sleep(0.05)  # ~20 req/s (well under 50k/day)
     return out_map
 
 
@@ -246,6 +292,24 @@ def dns_ip_geo_task(ds: str, ts: str, **context):
 
     log.info("[dns_ip_geo] ds=%s domains=%d new_pairs=%d daily_rows=%d cache_size=%d -> %s",
              ds, len(domains), len(pairs), len(daily), len(out_cache), outdir)
+
+    # --- emit run manifest ---
+    import json as _json
+    manifest = {
+        "dag_id": "dns_ip_geo_ingest",
+        "ds": ds,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "total_domains": len(domains),
+        "new_pairs_resolved": len(pairs),
+        "daily_rows": len(daily),
+        "cache_size": len(out_cache),
+        "geo_provider": GEO_PROVIDER,
+        "errors": 0,
+    }
+    manifest_path = f"{outdir}/run_manifest.json"
+    with open(manifest_path, "w") as mf:
+        _json.dump(manifest, mf, indent=2)
+    log.info("[dns_ip_geo] manifest written to %s", manifest_path)
 
 
 # ---------------- DAG ----------------
