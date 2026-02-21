@@ -231,6 +231,67 @@ def main(date_str):
         except Exception as e:
             print(f"Failed to copy model metadata: {e}")
             
+    # --- Drift Detection ---
+    drift_path = os.path.join(DASHBOARD_DATA_DIR, "drift.json")
+    prev_stats_path = os.path.join(DASHBOARD_DATA_DIR, "statistics_prev.json")
+    # Rotate: save current stats as "prev" for next run comparison
+    if os.path.exists(os.path.join(DASHBOARD_DATA_DIR, "statistics.json")):
+        try:
+            import shutil as _shutil
+            _shutil.copy2(os.path.join(DASHBOARD_DATA_DIR, "statistics.json"), prev_stats_path)
+        except Exception as _e:
+            print(f"[drift] Could not rotate stats: {_e}")
+
+    prev_stats = {}
+    if os.path.exists(prev_stats_path):
+        try:
+            with open(prev_stats_path) as _f:
+                prev_stats = json.load(_f)
+        except Exception:
+            prev_stats = {}
+
+    def _safe_delta(current, prev, key):
+        if key in prev and prev[key] is not None and current.get(key) is not None:
+            return round(float(current[key]) - float(prev[key]), 6)
+        return None
+
+    curr_malicious_ratio = (stats["maliciousCount"] / stats["totalSamples"]) if stats["totalSamples"] else 0
+    prev_malicious_ratio = (prev_stats["maliciousCount"] / prev_stats["totalSamples"]) if prev_stats.get("totalSamples") else None
+
+    # Top ASN drift: compare top-5 ASNs today vs prev (if available)
+    curr_top_asn = results_df["source"].value_counts().head(5).to_dict()  # proxy until ASN col available
+    if "sample_asn" in results_df.columns:
+        curr_top_asn = results_df["sample_asn"].dropna().value_counts().head(5).to_dict()
+
+    drift = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "date": date_str,
+        "total_samples": stats["totalSamples"],
+        "malicious_ratio": round(curr_malicious_ratio, 4),
+        "malicious_ratio_delta": round(curr_malicious_ratio - prev_malicious_ratio, 4) if prev_malicious_ratio is not None else None,
+        "avg_risk_score": stats["averageRiskScore"],
+        "avg_risk_score_delta": _safe_delta(stats, prev_stats, "averageRiskScore"),
+        "high_risk_count": stats["highRiskCount"],
+        "high_risk_count_delta": _safe_delta(stats, prev_stats, "highRiskCount"),
+        "risk_distribution": stats["riskDistribution"],
+        "top_asns": curr_top_asn,
+        "alert": None,
+    }
+
+    # Simple alert thresholds
+    alerts = []
+    if drift["malicious_ratio_delta"] is not None and abs(drift["malicious_ratio_delta"]) > 0.10:
+        alerts.append(f"Malicious ratio shifted by {drift['malicious_ratio_delta']:+.1%}")
+    if drift["avg_risk_score_delta"] is not None and abs(drift["avg_risk_score_delta"]) > 0.05:
+        alerts.append(f"Average risk score shifted by {drift['avg_risk_score_delta']:+.4f}")
+    if alerts:
+        drift["alert"] = " | ".join(alerts)
+        print(f"[DRIFT ALERT] {drift['alert']}")
+
+    with open(drift_path, "w") as f:
+        json.dump(drift, f, indent=2)
+    print(f"Drift manifest written to {drift_path}")
+
     print(f"Successfully exported {len(results_df)} threats and stats out of {len(Xdf)} total to {DASHBOARD_DATA_DIR}")
 
 if __name__ == "__main__":

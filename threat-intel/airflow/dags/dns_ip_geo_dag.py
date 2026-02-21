@@ -20,12 +20,14 @@ log = logging.getLogger(__name__)
 LABELS_UNION_BASE = "/opt/airflow/silver/labels_union"
 LOOKUPS_BASE      = "/opt/airflow/lookups"
 
-# Geo provider — set GEO_PROVIDER=ip_api (default) or GEO_PROVIDER=ipinfo_lite
-# ip_api free tier is HTTP-only (HTTPS requires a paid key). The DAG uses HTTP
-# with TLS via the retry adapter but avoids the paid HTTPS endpoint.
-# Switch to ipinfo_lite or maxmind when available.
-GEO_PROVIDER = os.getenv("GEO_PROVIDER", "ip_api")  # ip_api | ipinfo_lite
-IPINFO_TOKEN = os.getenv("IPINFO_TOKEN", "")  # set to your ipinfo.io free token
+# Geo provider — env-var GEO_PROVIDER controls which backend is used:
+#   ip_api      (default) — http://ip-api.com/batch, 45 req/min, HTTP only on free tier
+#   ipinfo_lite — https://ipinfo.io, 50k/day free, set IPINFO_TOKEN too
+#   maxmind     — local GeoLite2 .mmdb (zero API calls), set GEOLITE2_CITY_PATH + GEOLITE2_ASN_PATH
+GEO_PROVIDER   = os.getenv("GEO_PROVIDER", "ip_api")
+IPINFO_TOKEN   = os.getenv("IPINFO_TOKEN", "")
+GEOLITE2_CITY_PATH = os.getenv("GEOLITE2_CITY_PATH", "/opt/airflow/geoip/GeoLite2-City.mmdb")
+GEOLITE2_ASN_PATH  = os.getenv("GEOLITE2_ASN_PATH",  "/opt/airflow/geoip/GeoLite2-ASN.mmdb")
 
 DNS_GEO_CACHE_PATH = f"{LOOKUPS_BASE}/dns_geo_cache.parquet"   # rolling cache
 DNS_GEO_DAILY_DIR  = f"{LOOKUPS_BASE}/dns_geo"                 # partitioned snapshots
@@ -112,13 +114,57 @@ def _resolve_ips(puny_domain: str, resolver: dns.resolver.Resolver) -> List[str]
     return _resolve_rr(puny_domain, "A", resolver) + _resolve_rr(puny_domain, "AAAA", resolver)
 
 def _ip_geo_batch(session: requests.Session, ips: List[str]) -> Dict[str, Dict[str, Any]]:
-    """Query geo provider in batch. Respects GEO_PROVIDER env-var."""
+    """Route to the configured geo provider. Respects GEO_PROVIDER env-var."""
     if not ips:
         return {}
+    if GEO_PROVIDER == "maxmind" and os.path.exists(GEOLITE2_CITY_PATH):
+        return _ip_geo_maxmind(ips)
     if GEO_PROVIDER == "ipinfo_lite" and IPINFO_TOKEN:
         return _ip_geo_ipinfo(session, ips)
     # Default: ip-api free tier (HTTP only; HTTPS requires paid key)
     return _ip_geo_ipapi(session, ips)
+
+
+def _ip_geo_maxmind(ips: List[str]) -> Dict[str, Dict[str, Any]]:
+    """Local GeoLite2 City + ASN lookup \u2014 zero API calls, HTTPS safe, offline-capable.
+    Requires GEOLITE2_CITY_PATH and optionally GEOLITE2_ASN_PATH env-vars pointing
+    to downloaded .mmdb files. Run scripts/download_geolite2.sh to obtain them."""
+    try:
+        import geoip2.database
+    except ImportError:
+        log.warning("geoip2 not installed; falling back to ip-api. Run: pip install geoip2")
+        from requests import Session
+        return _ip_geo_ipapi(Session(), ips)
+
+    out_map: Dict[str, Dict[str, Any]] = {}
+    city_reader = geoip2.database.Reader(GEOLITE2_CITY_PATH)
+    asn_reader  = geoip2.database.Reader(GEOLITE2_ASN_PATH) if os.path.exists(GEOLITE2_ASN_PATH) else None
+
+    for ip in ips:
+        try:
+            city = city_reader.city(ip)
+            asn_data = asn_reader.asn(ip) if asn_reader else None
+            out_map[ip] = {
+                "country":  city.country.name,
+                "region":   city.subdivisions.most_specific.name if city.subdivisions else None,
+                "city":     city.city.name,
+                "lat":      float(city.location.latitude) if city.location.latitude else None,
+                "lon":      float(city.location.longitude) if city.location.longitude else None,
+                "asn":      f"AS{asn_data.autonomous_system_number}" if asn_data else None,
+                "asn_name": asn_data.autonomous_system_organization if asn_data else None,
+                "isp":      asn_data.autonomous_system_organization if asn_data else None,
+                "org":      asn_data.autonomous_system_organization if asn_data else None,
+                "reverse":  None,
+                "proxy":    None,
+                "hosting":  None,
+            }
+        except Exception:
+            out_map[ip] = {}
+
+    city_reader.close()
+    if asn_reader:
+        asn_reader.close()
+    return out_map
 
 
 def _ip_geo_ipapi(session: requests.Session, ips: List[str]) -> Dict[str, Dict[str, Any]]:
