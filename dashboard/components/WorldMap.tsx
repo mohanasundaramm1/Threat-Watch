@@ -9,8 +9,8 @@ import {
 } from 'react-simple-maps';
 import { scaleQuantize } from 'd3-scale';
 
-// A lightweight TopoJSON map of the world
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+// A lightweight TopoJSON map of the world, hosted locally
+const geoUrl = "/data/features.json";
 
 interface WorldMapProps {
     data: Record<string, number>;

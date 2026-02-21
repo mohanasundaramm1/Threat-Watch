@@ -118,13 +118,6 @@ def get_recent_partitions(base_dir, days_back):
         path = os.path.join(base_dir, f"ingest_date={date_str}")
         if os.path.exists(path):
             partitions.append(path)
-    # Also include the old static baseline partitions so we have guaranteed data
-    PHISH_DAYS  = [f"2025-11-{d:02d}" for d in range(17, 27)]
-    BENIGN_DAYS = ["2025-10-28", "2025-10-29", "2025-10-30", "2025-10-31"]
-    for date_str in PHISH_DAYS + BENIGN_DAYS:
-        path = os.path.join(base_dir, f"ingest_date={date_str}")
-        if os.path.exists(path) and path not in partitions:
-            partitions.append(path)
     return partitions
 
 def main(days_back=14):

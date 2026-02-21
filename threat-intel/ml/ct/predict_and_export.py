@@ -135,11 +135,12 @@ def main(date_str):
         traceback.print_exc()
         return
         
+    # Flag MISP match if it's in the domain list or shares an IP
+    Xdf["is_misp"] = Xdf.apply(lambda r: (r["registered_domain"] in misp_domains) or bool(r.get("matched_misp_ip", False)), axis=1)
+    
     X_full = build_features(Xdf)
     preds = booster.predict(X_full)
     Xdf["riskScore"] = preds
-    # Flag MISP match if it's in the domain list or shares an IP
-    Xdf["is_misp"] = Xdf.apply(lambda r: (r["registered_domain"] in misp_domains) or bool(r.get("matched_misp_ip", False)), axis=1)
     
     def get_misp_cat(r):
         rd = r["registered_domain"]
@@ -195,8 +196,8 @@ def main(date_str):
     # Generate Statistics
     stats = {
         "totalSamples": len(Xdf),
-        "maliciousCount": len(Xdf[Xdf["riskScore"] >= 0.6]),
-        "benignCount": len(Xdf[Xdf["riskScore"] < 0.6]),
+        "maliciousCount": len(results_df[results_df["riskScore"] >= 0.6]),
+        "benignCount": len(results_df[(results_df["riskScore"] < 0.6) & (results_df["riskLevel"] != "CRITICAL")]),
         "riskDistribution": {
             "CRITICAL": len(results_df[results_df["riskLevel"] == "CRITICAL"]),
             "LOW": len(results_df[results_df["riskLevel"] == "LOW"]),
@@ -205,7 +206,7 @@ def main(date_str):
         },
         "threatTypeDistribution": results_df["threatType"].value_counts().to_dict(),
         "sourceDistribution": results_df["source"].value_counts().to_dict(),
-        "averageRiskScore": float(Xdf["riskScore"].mean()),
+        "averageRiskScore": float(results_df["riskScore"].mean()),
         "highRiskCount": len(results_df[results_df["riskLevel"].isin(["CRITICAL", "HIGH"])]),
         "dateRange": {
             "earliest": str(Xdf["first_seen"].min()),

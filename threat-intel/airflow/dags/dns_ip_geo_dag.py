@@ -108,7 +108,7 @@ def _ip_geo_batch(session: requests.Session, ips: List[str]) -> Dict[str, Dict[s
     """Query ip-api batch (100 per call). Return {ip: geo_fields}."""
     if not ips:
         return {}
-    url = "http://ip-api.com/batch"  # free tier; best-effort
+    url = "https://ip-api.com/batch"  # secure transport; best-effort
     out_map: Dict[str, Dict[str, Any]] = {}
     for i in range(0, len(ips), 100):
         chunk = ips[i:i+100]
