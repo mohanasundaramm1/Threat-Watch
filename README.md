@@ -84,7 +84,7 @@ graph TD
 ### 1. Start the Data Engineering Backend
 We utilize Docker Compose to spin up the Apache Airflow orchestrator and its PostgreSQL meta-database.
 ```bash
-cd threat-intel
+cd threat-intel/airflow
 docker-compose -f docker-compose.airflow.yml up -d
 ```
 *Wait ~2 minutes for the containers to fully initialize.*

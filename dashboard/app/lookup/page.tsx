@@ -19,15 +19,15 @@ export default function LookupPage() {
 
   const handleSearch = () => {
     if (!query.trim()) return;
-    
+
     setLoading(true);
     setSearched(true);
-    
-    const found = allThreats.find(t => 
+
+    const found = allThreats.find(t =>
       t.domain.toLowerCase() === query.toLowerCase().trim() ||
       t.url.toLowerCase().includes(query.toLowerCase().trim())
     );
-    
+
     setTimeout(() => {
       setResult(found || null);
       setLoading(false);
@@ -101,12 +101,11 @@ export default function LookupPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex-1 bg-slate-700 rounded-full h-3">
                         <div
-                          className={`h-3 rounded-full shadow-lg ${
-                            result.riskScore >= 0.75 ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                            result.riskScore >= 0.50 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
-                            result.riskScore >= 0.30 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-                            'bg-gradient-to-r from-green-500 to-green-600'
-                          }`}
+                          className={`h-3 rounded-full shadow-lg ${result.riskScore >= 0.75 ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                              result.riskScore >= 0.50 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                result.riskScore >= 0.30 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                  'bg-gradient-to-r from-green-500 to-green-600'
+                            }`}
                           style={{ width: `${result.riskScore * 100}%` }}
                         ></div>
                       </div>
@@ -184,7 +183,7 @@ export default function LookupPage() {
               <div className="p-5 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
                 <h3 className="font-black text-cyan-400 mb-3 text-lg">ℹ️ Note</h3>
                 <p className="text-sm text-cyan-300 leading-relaxed">
-                  A domain not being in our database doesn't guarantee it's safe. Our database contains
+                  A domain not being in our database doesn&apos;t guarantee it&apos;s safe. Our database contains
                   {' '}{allThreats.length.toLocaleString()} known threats. Always exercise caution when visiting
                   unfamiliar websites.
                 </p>

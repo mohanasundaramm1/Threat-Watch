@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["id", "domain", "event_ts", "source", "producer_ts"],
+  "properties": {
+    "id":          {"type": "string", "minLength": 1},
+    "domain":      {"type": "string", "minLength": 1},
+    "tld":         {"type": ["string","null"]},
+    "event_ts":    {"type": "string", "format": "date-time"},
+    "producer_ts": {"type": "string", "format": "date-time"},
+    "source":      {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}
