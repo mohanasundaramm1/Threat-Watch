@@ -209,7 +209,7 @@ In this capstone research, we successfully architected, developed, and deployed 
 
 Our deployment of the LightGBM algorithm heavily outperformed traditional lexical baselines, achieving a 98.26% PR-AUC score. Furthermore, our novel algorithmic **MISP Infrastructure Overlap Engine** increased deterministic threat interception by over 300% on zero-day campaigns. Finally, the highly cohesive integration of these complex backend MLOps pipelines with a pristine, server-side rendered Next.js React Dashboard yields an enterprise-grade analytics suite readily equipped for modern Security Operations Centers.
 
-## 7.1 Frontend and User Experience Contributions:
+### 7.1 Frontend and User Experience Contributions
 The integration of sophisticated MLOps pipelines with an intuitive, production-grade web interface demonstrates the critical importance of user-centered design in cybersecurity tooling. By transforming complex probabilistic outputs into actionable risk tiers and geospatial visualizations, the ThreatWatch dashboard bridges the gap between algorithmic intelligence and human decision-making. The TypeScript implementation ensures type safety and maintainability, while the Next.js SSR architecture delivers sub-second page loads suitable for high-pressure SOC environments. This work validates that effective threat intelligence platforms require equal investment in both backend data engineering and frontend user experience design.
 
 ### 7.2 Future Work and Limitations
