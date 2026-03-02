@@ -10,7 +10,7 @@
 ## 👥 Meet the Team
 **California State University, East Bay - Capstone Project 2025/2026**
 - **Mohanasundaram Murugesan (k3059432)** – Data Engineering & Architecture
-- **Nikita Desale (kf3051)** – Machine Learning & Frontend Dashboard
+- **Nikita Desale (kf3051)** – Machine Learning Engineering & Frontend Dashboard Development
 
 ---
 
