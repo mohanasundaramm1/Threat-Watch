@@ -37,7 +37,6 @@ with DAG(
             conf={"ds": ds_utc, "ts": ts_utc},
             wait_for_completion=True,
             reset_dag_run=True,
-            # deferrable=True,  # optional later
             deferrable=False,   # <-- stability first
             poke_interval=60,
             allowed_states=[State.SUCCESS],
@@ -54,6 +53,7 @@ with DAG(
             allowed_states=[State.SUCCESS],
             failed_states=[State.FAILED],
         )
+        openphish_bronze >> urlhaus_bronze  # Serialize to drop RAM spike
 
     # ----- Silver (normalize) -----
     with TaskGroup("silver") as silver:
@@ -79,6 +79,7 @@ with DAG(
             allowed_states=[State.SUCCESS],
             failed_states=[State.FAILED],
         )
+        openphish_silver >> urlhaus_silver # Serialize to drop RAM spike
 
     # ----- Union (merge silvers) -----
     union = TriggerDagRunOperator(
@@ -118,8 +119,7 @@ with DAG(
             failed_states=[State.FAILED],
         )
 
-        if SERIALIZE_LOOKUPS:
-            whois >> dns_geo  # run WHOIS then DNS to lower resource spikes
+        whois >> dns_geo  # Always run WHOIS then DNS to lower resource spikes
 
     # ----- MISP side branch (independent) -----
     with TaskGroup("misp") as misp:
@@ -137,7 +137,5 @@ with DAG(
 
     end = EmptyOperator(task_id="end")
 
-    # Graph
-    start >> bronze >> silver >> union >> lookups
-    start >> misp
-    [lookups, misp] >> end
+    # Graph strictly linear to prevent out-of-memory zombie task kills in Docker
+    start >> misp >> bronze >> silver >> union >> lookups >> end
