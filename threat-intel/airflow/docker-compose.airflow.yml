@@ -51,8 +51,15 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow_secure_pass}@postgres:5432/${POSTGRES_DB:-airflow}
       AIRFLOW__CORE__DEFAULT_TIMEZONE: "UTC"
-      AIRFLOW__SCHEDULER__ZOMBIE_TASK_THRESHOLD: "10800" # 3 hours
-      AIRFLOW__SCHEDULER__TASK_HEARTBEAT_SEC: "30"
+      # CRITICAL: Airflow 2.9 uses scheduler_zombie_task_threshold (with prefix)
+      # The old ZOMBIE_TASK_THRESHOLD key maps to a DIFFERENT setting and was
+      # being ignored — leaving the effective threshold at 300s (5 min).
+      # This killed every TriggerDagRunOperator that polled > 5 min.
+      AIRFLOW__SCHEDULER__SCHEDULER_ZOMBIE_TASK_THRESHOLD: "28800" # 8 hours
+      AIRFLOW__SCHEDULER__ZOMBIE_TASK_THRESHOLD: "28800" # belt-and-suspenders
+      AIRFLOW__SCHEDULER__TASK_HEARTBEAT_SEC: "10"
+      AIRFLOW__SCHEDULER__LOCAL_TASK_JOB_HEARTBEAT_SEC: "10"
+      AIRFLOW__SCHEDULER__SCHEDULER_HEALTH_CHECK_THRESHOLD: "120"
       _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary pandas pyarrow requests dnspython tldextract great_expectations==0.18.12 scikit-learn lightgbm joblib"
     volumes:
       - ./dags:/opt/airflow/dags
