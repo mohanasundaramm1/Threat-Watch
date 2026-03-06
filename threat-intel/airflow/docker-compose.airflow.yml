@@ -16,7 +16,7 @@ services:
     restart: always
 
   airflow-webserver:
-    image: apache/airflow:2.9.3
+    build: .
     depends_on:
       postgres:
         condition: service_healthy
@@ -27,7 +27,6 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DEFAULT_TIMEZONE: "UTC"
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "false"
-      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary pandas pyarrow requests dnspython tldextract great_expectations==0.18.12 scikit-learn lightgbm joblib"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -42,7 +41,7 @@ services:
     command: webserver
 
   airflow-scheduler:
-    image: apache/airflow:2.9.3
+    build: .
     depends_on:
       postgres:
         condition: service_healthy
@@ -60,7 +59,6 @@ services:
       AIRFLOW__SCHEDULER__TASK_HEARTBEAT_SEC: "10"
       AIRFLOW__SCHEDULER__LOCAL_TASK_JOB_HEARTBEAT_SEC: "10"
       AIRFLOW__SCHEDULER__SCHEDULER_HEALTH_CHECK_THRESHOLD: "120"
-      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary pandas pyarrow requests dnspython tldextract great_expectations==0.18.12 scikit-learn lightgbm joblib"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -73,7 +71,7 @@ services:
     command: scheduler
 
   airflow-triggerer:
-    image: apache/airflow:2.9.3
+    build: .
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,7 +80,6 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow_secure_pass}@postgres:5432/${POSTGRES_DB:-airflow}
       AIRFLOW__CORE__DEFAULT_TIMEZONE: "UTC"
-      _PIP_ADDITIONAL_REQUIREMENTS: "psycopg2-binary pandas pyarrow requests dnspython tldextract great_expectations==0.18.12 scikit-learn lightgbm joblib"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
