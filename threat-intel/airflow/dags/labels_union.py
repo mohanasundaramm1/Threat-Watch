@@ -14,6 +14,10 @@ SILVER_URLHAUS   = "/opt/airflow/silver/urlhaus"
 SILVER_OPENPHISH = "/opt/airflow/silver/openphish"
 UNION_OUT        = "/opt/airflow/silver/labels_union"
 
+# Benign seed: Tranco Top 1M list for negative class
+BENIGN_CSV       = "/opt/airflow/benign/top-1m.csv"
+BENIGN_SAMPLE_N  = 10_000   # sample N benign domains per day (balanced with phishing)
+
 # ---------------- helpers ----------------
 def _effective_ds_ts(ds: str, ts: str, **context):
     """Use ds/ts from dag_run.conf if orchestrator passed them."""
@@ -81,6 +85,32 @@ def build_union(ds: str | None = None, ts: str | None = None, **context):
     if op is not None and len(op):
         op = op.assign(seen_in_urlhaus=False, seen_in_openphish=True)
         dfs.append(op)
+
+    # ---- Benign seed from Tranco Top 1M ----
+    # Sample N domains deterministically (seed = date hash for reproducibility)
+    if os.path.exists(BENIGN_CSV):
+        seed = int(pd.Timestamp(ds).timestamp()) % (2**31)
+        top1m = pd.read_csv(BENIGN_CSV, header=None, names=["rank", "domain"])
+        # Exclude any domains already in phishing to avoid label collision
+        phish_domains = set()
+        for d in dfs:
+            if "domain" in d.columns:
+                phish_domains.update(d["domain"].dropna().str.lower().unique())
+        top1m = top1m[~top1m["domain"].str.lower().isin(phish_domains)]
+        benign = top1m.sample(n=min(BENIGN_SAMPLE_N, len(top1m)), random_state=seed)
+        benign_df = pd.DataFrame({
+            "domain": benign["domain"].values,
+            "url": "https://" + benign["domain"].values,
+            "first_seen": pd.Timestamp(ds, tz="UTC"),
+            "label": "benign",
+            "source": "benign_seed",
+            "seen_in_urlhaus": False,
+            "seen_in_openphish": False,
+        })
+        dfs.append(benign_df)
+        log.info("[labels_union] %s: sampled %d benign domains from Top-1M", ds, len(benign_df))
+    else:
+        log.warning("[labels_union] %s: benign CSV not found at %s", ds, BENIGN_CSV)
 
     if dfs:
         union = pd.concat(dfs, ignore_index=True)
