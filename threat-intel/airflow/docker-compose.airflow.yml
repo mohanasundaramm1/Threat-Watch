@@ -88,5 +88,21 @@ services:
       - ./plugins:/opt/airflow/plugins
     command: triggerer
 
+  investigation-api:
+    build:
+      context: ..
+      dockerfile: api/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../silver:/data/silver
+      - ../lookups:/data/lookups
+      - ../ml:/data/ml
+    environment:
+      DATA_ROOT: /data
+      PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:-}
+      INVESTIGATION_DB: /data/investigations.db
+    restart: always
+
 volumes:
   pgdata:

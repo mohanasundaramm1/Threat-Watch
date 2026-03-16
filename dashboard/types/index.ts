@@ -41,3 +41,68 @@ export interface ModelMeta {
   };
   model_file: string;
 }
+
+// ── Agentic Investigation Types ──────────────────────────────────
+
+export interface DNSFindings {
+  ips: string[];
+  countries: string[];
+  asns: string[];
+  isps: string[];
+  has_ipv6: boolean;
+  ip_count: number;
+  error?: string;
+}
+
+export interface WHOISFindings {
+  registrar?: string;
+  created_date?: string;
+  expiry_date?: string;
+  age_days?: number;
+  status?: string;
+  name_servers: string[];
+  error?: string;
+}
+
+export interface ThreatDBFindings {
+  found: boolean;
+  sources: string[];
+  labels: string[];
+  first_seen?: string;
+  risk_score_from_db?: number;
+}
+
+export interface SHAPExplanation {
+  feature_contributions: Record<string, number>;
+  top_risk_factors: string[];
+}
+
+export interface InvestigationFindings {
+  dns: DNSFindings;
+  whois: WHOISFindings;
+  threat_db: ThreatDBFindings;
+  shap: SHAPExplanation;
+}
+
+export interface InvestigationResult {
+  id: string;
+  domain: string;
+  risk_score: number | null;
+  risk_level: string | null;
+  findings: InvestigationFindings;
+  ai_report: string;
+  citations: string[];
+  recommendations: string[];
+  investigated_at: string;
+  latency_seconds: number | null;
+  agent_mode: string;
+}
+
+export interface InvestigationSummary {
+  id: string;
+  domain: string;
+  risk_score: number | null;
+  risk_level: string | null;
+  agent_mode: string;
+  investigated_at: string;
+}

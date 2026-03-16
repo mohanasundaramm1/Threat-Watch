@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BarChart3, Search, Brain, Database, Shield, Activity } from 'lucide-react';
+import { Home, BarChart3, Search, Brain, Database, Shield, Activity, Bot } from 'lucide-react';
 
 const navigation = [
   { name: 'Overview', href: '/', icon: Home },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'AI Investigate', href: '/investigate', icon: Bot },
   { name: 'Domain Lookup', href: '/lookup', icon: Search },
   { name: 'ML Model', href: '/model', icon: Brain },
   { name: 'Data Sources', href: '/sources', icon: Database },
