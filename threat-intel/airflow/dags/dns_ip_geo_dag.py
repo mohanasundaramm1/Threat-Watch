@@ -279,10 +279,10 @@ def dns_ip_geo_task(ds: str, ts: str, **context):
 
     # DNS resolve (with fallback nameservers)
     resolver = dns.resolver.Resolver(configure=True)
-    resolver.lifetime = 3.0
-    resolver.timeout  = 3.0
+    resolver.lifetime = 5.0
+    resolver.timeout  = 5.0
     if not resolver.nameservers:
-        resolver.nameservers = ["8.8.8.8", "1.1.1.1"]
+        resolver.nameservers = ["8.8.8.8", "1.1.1.1", "9.9.9.9"]
 
     pairs: List[Tuple[str, str]] = []  # (puny_domain, ip)
     for d in domains:

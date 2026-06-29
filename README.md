@@ -21,7 +21,7 @@ ThreatWatch is a complete end-to-end Big Data & MLOps pipeline. It ingests thous
 - **Zero-Day MISP Firewall:** Cross-references incoming domains against 8,000+ daily MISP indicators.
 - **Infrastructure Overlap Engine:** Employs fuzzy-matching to flag entirely new domains if they map to IPs heavily correlated with known MISP attacks.
 - **Continuous ML Training:** A fully automated Apache Airflow orchestration pipeline running a `biweekly_ml_retraining` DAG to automatically retrain the LightGBM models against drifting data.
-- **Next.js Real-time Dashboard:** A high-end analytics platform mapping top threat global geographies dynamically via `react-simple-maps`.
+- **Next.js Near-Real-Time Dashboard:** A high-end analytics platform mapping top threat global geographies dynamically via `react-simple-maps`, refreshed on a 2-hour batch export cycle.
 
 ---
 

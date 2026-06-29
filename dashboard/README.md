@@ -2,7 +2,7 @@
 
 **Author:** Nikita Desale (kf3051)  
 **Date:** November 30, 2025  
-**Project:** Real-Time Threat Intelligence Pipeline with Machine Learning-Based Domain Classification
+**Project:** Near-Real-Time (2-hour batch) Threat Intelligence Pipeline with Machine Learning-Based Domain Classification
 
 ## 🎯 Project Overview
 
@@ -137,7 +137,7 @@ The system extracts **62 features** from domains:
 ## 🎨 Dashboard Features
 
 ### 1. Overview Page (/)
-- Real-time threat statistics
+- Threat statistics (refreshed every 2 hours via batch export)
 - Risk level distribution
 - Recent high-risk threats table
 - Key metrics cards
@@ -210,7 +210,7 @@ python scripts/export_for_dashboard.py
 - **Top-1M Benign**: Legitimate domains for training
 
 ### Enrichment Sources
-- **DNS Resolution**: Real-time domain-to-IP mapping
+- **DNS Resolution**: Domain-to-IP mapping (21.2% coverage; bottlenecked by public DNS timeouts)
 - **MaxMind GeoIP**: Geographic and ASN data
 - **WHOIS/RDAP**: Registration information
 
